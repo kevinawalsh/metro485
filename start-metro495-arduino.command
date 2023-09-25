@@ -9,9 +9,9 @@ done
 DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
 
 echo; echo "==== Changing to directory $DIR ===="
-cd $DIR
+cd "$DIR"
 ./set_icon.sh
-cd $DIR/daemon
+cd "$DIR/daemon"
 echo; echo "==== Compiling daemon ===="
 make
 echo; echo "==== Opening patch ===="
