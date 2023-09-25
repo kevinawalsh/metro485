@@ -25,12 +25,12 @@ typedef unsigned char uchar;
 // usage.c
 extern char *av0; // program path, from argv[0]
 extern int verbose;
-void help(); // print help then exit
+void help(void); // print help then exit
 void usage(char *errmsg, char *detail); // print errors and optional detail then fail
 void parse_args(int ac, char **av); // parse command-line arguments
 
 // debug.c
-void close_handles();
+void close_handles(void);
 void exit_fail(char *msg, ...);
 void exit_perror(char *syscall, char *msg, ...);
 
@@ -41,47 +41,47 @@ int file_exists(char *path);
 
 // str.c
 typedef struct str_buf {
-  int cap; // capacity of buffer, not including nul terminator
-  int len; // length of buffer, not including nul terminator
+  size_t cap; // capacity of buffer, not including nul terminator
+  size_t len; // length of buffer, not including nul terminator
   uchar *buf; // size is cap+1, zero-filled except for initial len bytes
 } *str;
-str str_new(int cap);
-str str_empty();
+str str_new(size_t cap);
+str str_empty(void);
 str str_from(char *cstr);
 void str_free(str *s);
 void str_clear(str s);
-void str_ensure(str s, int space);
+void str_ensure(str s, size_t space);
 void str_append1(str s, char c);
 void str_append(str s, char *m);
-void str_appendN(str s, char *m, int n);
-str str_tail(str s, int i);
-str str_mid(str s, int i, int n);
-void str_discard_prefix(str s, int n);
-str str_split(str s, int n);
-str str_splitline_after(str s, int n);
-void str_skip_spaces(str ascii, int *pos);
-str str_next_word(str ascii, int *pos);
-int str_printf(str s, char *fmt, ...); // returns negative on error
+void str_appendN(str s, char *m, size_t n);
+str str_tail(str s, size_t i);
+str str_mid(str s, size_t i, size_t n);
+void str_discard_prefix(str s, size_t n);
+str str_split(str s, size_t n);
+str str_splitline_after(str s, size_t n);
+void str_skip_spaces(str ascii, size_t *pos);
+str str_next_word(str ascii, size_t *pos);
+ssize_t str_printf(str s, char *fmt, ...); // returns negative on error
 void str_dump_bytes(str s, char *title);
 void str_show_ascii(str s, char *title);
 
 // osc.c
 str osc_to_ascii(str osc); // caller must free result
-str ascii_to_osc(str ascii, int initialPos); // caller must free result
+str ascii_to_osc(str ascii, size_t initialPos); // caller must free result
 void ascii_unescape2(str result, char *s, int allowSpace);
-void ascii_escape2(str result, void *s, int n, int allowSpace);
+void ascii_escape2(str result, void *s, size_t n, int allowSpace);
 
 // usb.c
 extern volatile struct termios saveoptions;
 extern volatile int serialfd;
 int open_serial(char *name);
-void serial_wait_for_ready();
+void serial_wait_for_ready(void);
 str serial_readline(unsigned int *timeout_us);
 void serial_write(str line);
 
 // udp.c
 extern volatile int sockfd;
-void open_udp_socket();
+void open_udp_socket(void);
 
 // main.c
 extern volatile int ready;

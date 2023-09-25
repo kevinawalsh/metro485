@@ -3,13 +3,13 @@
 char *av0 = NULL;
 int verbose = 1;
 
-void help() {
+void help(void) {
     printf("%s [OPTIONS]\n"
             "\n"
             "Starts a daemon to synchronize MaxMSP instances using a retro arduino serial protocol.\n"
-            "This program listens for incoming serial data, packages it into OSC messages, and\n"
+            "This program listens for incoming usb-serial data, packages it into OSC messages, and\n"
             "sends it to MaxMSP via UDP. It simultaneously listens for incoming UDP packets from\n"
-            "MaxMSP containing OSC messages, and sends those along to the arduino over serial protocol.\n"
+            "MaxMSP containing OSC messages, and sends those along to the arduino over usb-serial.\n"
             "\n"
             "Options:\n"
             "  -v, --verbose       Be more verbose.\n"
@@ -84,13 +84,13 @@ void parse_args(int ac, char **av) {
         } else if (!strncmp(*av, "-p", 2) || !strcmp(*av, "--port") || !strncmp(*av, "--port=", 7)) {
             char *p = opt_with_arg(&ac, &av);
             char *end = NULL;
-            maxport = strtoul(p, &end, 10);
+            maxport = (int)strtol(p, &end, 10);
             if (!end || *end || maxport <= 0 || maxport > 0xfffe)
                 usage("invalid UDP port number", p);
         } else if (!strncmp(*av, "-l", 2) || !strcmp(*av, "--listen") || !strncmp(*av, "--listen=", 9)) {
             char *p = opt_with_arg(&ac, &av);
             char *end = NULL;
-            rcvport = strtoul(p, &end, 10);
+            rcvport = (int)strtol(p, &end, 10);
             if (!end || *end || rcvport <= 0 || rcvport > 0xfffe)
                 usage("invalid UDP port number", p);
         } else if (!strncmp(*av, "-s", 2) || !strcmp(*av, "--serial") || !strncmp(*av, "--serial=", 9)) {

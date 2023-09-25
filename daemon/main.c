@@ -19,6 +19,7 @@
 // msg ...                       {msg ... }             payload is a list of (int, float, string) data
 
 _Static_assert(sizeof(int) == 4, "sizeof(int) expected to be 4 bytes");
+_Static_assert(sizeof(float) == 4, "sizeof(float) expected to be 4 bytes");
 
 int baud = 57600;
 char *serial = NULL;
@@ -38,10 +39,10 @@ void *xfer_maxmsp_to_arduino(void *arg) {
     str udp = str_new(4096);
     for (;;) {
         // Wait for UDP message from MaxMSP
-        int udp_len = recv(sockfd, udp->buf, udp->cap, 0);
+        ssize_t udp_len = recv(sockfd, udp->buf, udp->cap, 0);
         if (udp_len < 0)
             exit_perror("recv", "Could not receive UDP message");
-        udp->len = udp_len;
+        udp->len = (size_t)udp_len;
         if (verbose >= 2)
             str_dump_bytes(udp, "UDP packet");
         // Convert to equivalent ascii message
@@ -83,8 +84,8 @@ void *xfer_arduino_to_maxmsp(void *arg) {
                     printf_locked("Sending OSC message to MaxMSP on port %d\n", maxport);
                     str_dump_bytes(osc, "OSC message");
                 }
-                int n = sendto(sockfd, osc->buf, osc->len, 0, maddr, maddr_len);
-                if (n != osc->len)
+                ssize_t n = sendto(sockfd, osc->buf, osc->len, 0, maddr, maddr_len);
+                if (n < 0 || (size_t)n != osc->len)
                     fprintf(stderr, "Error: failed to send OSC message to MaxMSP.\n");
                 str_free(&osc);
             }

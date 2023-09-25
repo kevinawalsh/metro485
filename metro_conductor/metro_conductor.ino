@@ -355,9 +355,14 @@ void process_command(const char *buf) {
 }
 
 void process_remote_command(const char *buf) {
+  int n = strlen(buf);
+  if (buf < 2)
+    return;
+  if (buf[n-1] == '\x02') // STX, ignore garbage in buffer
+    return;
   // buf = validate_checksum(buf);
   // if (buf)
-    process_command(buf);
+  process_command(buf);
 }
 
 // Initialize arduino.

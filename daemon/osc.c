@@ -57,7 +57,7 @@
 // accepting other messages.
 
 // 8-bit nul terminated string
-int osc_convert_s(str osc, int *pos, str ascii) {
+size_t osc_convert_s(str osc, size_t *pos, str ascii) {
     if (*pos + 4 > osc->len) {
         printf_locked("Error: OSC packet truncated, expecting string at position %d\n", *pos);
         return 0;
@@ -76,7 +76,7 @@ int osc_convert_s(str osc, int *pos, str ascii) {
         str_append(ascii, "s:");
     }
     ascii_escape2(ascii, start, end - start, 0);
-    int n = (end - start) + 1;
+    size_t n = (end - start) + 1;
     while ((n % 4) != 0) {
         if (*end != '\0') {
             printf_locked("Warning: misaligned OSC data\n");
@@ -89,12 +89,12 @@ int osc_convert_s(str osc, int *pos, str ascii) {
 }
 
 // 32-bit integer
-int osc_convert_i(str osc, int *pos, str ascii) {
+size_t osc_convert_i(str osc, size_t *pos, str ascii) {
     if (*pos + 4 > osc->len) {
         printf_locked("Error: OSC packet truncated, expecting 4-byte integer at position %d\n", *pos);
         return 0;
     }
-    int v;
+    int32_t v;
     v  = osc->buf[(*pos)+0] << 24;
     v |= osc->buf[(*pos)+1] << 16;
     v |= osc->buf[(*pos)+2] << 8;
@@ -104,10 +104,10 @@ int osc_convert_i(str osc, int *pos, str ascii) {
     return 4;
 }
 
-int float_is_unambiguous(char *buf, int floatbits) {
+int float_is_unambiguous(char *buf, int32_t floatbits) {
     float f2;
     sscanf(buf, "%f", &f2);
-    int b;
+    int32_t b;
     memcpy(&b, &f2, 4);
     float f1;
     memcpy(&f1, &floatbits, 4);
@@ -115,7 +115,7 @@ int float_is_unambiguous(char *buf, int floatbits) {
 }
 
 // 32-bit float
-int osc_convert_f(str osc, int *pos, str ascii) {
+int osc_convert_f(str osc, size_t *pos, str ascii) {
     if (*pos + 4 > osc->len) {
         printf_locked("Error: OSC packet truncated, expecting 4-byte integer at position %d\n", *pos);
         return 0;
@@ -146,11 +146,11 @@ str osc_to_ascii(str osc) {
         return NULL;
     }
 
-    int pos = 0;
+    size_t pos = 0;
     str result = str_new(osc->len + 100);
 
     // parse the tag string, append to result
-    int taglen = osc_convert_s(osc, &pos, result);
+    size_t taglen = osc_convert_s(osc, &pos, result);
     if (taglen == 0)  {
         printf_locked("Error: OSC packet has missing or empty tag\n");
         str_free(&result);
@@ -167,8 +167,8 @@ str osc_to_ascii(str osc) {
         return result;
     }
 
-    int ok = 1;
-    for (int i = 1; i < args->len && ok; i++) {
+    size_t ok = 1;
+    for (size_t i = 1; i < args->len && ok != 0; i++) {
         uchar desc = args->buf[i];
         if (desc == 'i') {
             ok = osc_convert_i(osc, &pos, result);
@@ -196,8 +196,8 @@ void unescape2_and_align(str osc, char *ascii) {
         str_append1(osc, '\0');
 }
 
-str ascii_to_osc(str ascii, int initialPos) {
-    int pos = initialPos;
+str ascii_to_osc(str ascii, size_t initialPos) {
+    size_t pos = initialPos;
   
     str tag = str_next_word(ascii, &pos);
     if (!tag) {
@@ -280,9 +280,9 @@ str ascii_to_osc(str ascii, int initialPos) {
     return osc;
 }
 
-void ascii_escape2(str result, void *buf, int n, int allowSpaces) {
+void ascii_escape2(str result, void *buf, size_t n, int allowSpaces) {
     uchar *s = buf;
-    for (int i = 0; i < n; i++) {
+    for (size_t i = 0; i < n; i++) {
         uchar c = s[i];
         if (' ' < c && c <= '~' && c != '_') {
             str_append1(result, c);
@@ -341,7 +341,7 @@ void ascii_unescape2(str result, char *s, int allowSpaces) {
             num[2] = '\0';
             char *e;
             char v = (char)strtoul(num, &e, 16);
-            int n = (e - num);
+            size_t n = (e - num);
             if (n != 2) {
                 printf_locked("warning: invalid hex escape sequence\n");
                 s++; // skip the 'x'

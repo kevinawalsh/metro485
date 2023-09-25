@@ -1,6 +1,6 @@
 #include "main.h"
 
-str str_new(int cap) {
+str str_new(size_t cap) {
     if (cap <= 100)
         cap = 100;
     str s = calloc(sizeof(struct str_buf), 1);
@@ -9,12 +9,12 @@ str str_new(int cap) {
     return s;
 }
 
-str str_empty() {
+str str_empty(void) {
     return str_new(0);
 }
 
 str str_from(char *cstr) {
-    int n = strlen(cstr);
+    size_t n = strlen(cstr);
     str s = calloc(sizeof(struct str_buf), 1);
     s->buf = calloc(n+1, 1);
     s->cap = n;
@@ -38,12 +38,10 @@ void str_clear(str s) {
     s->len = 0;
 }
 
-void str_ensure(str s, int space) {
-    if (space < 0)
-        space = 0;
+void str_ensure(str s, size_t space) {
     if (s->len + space <= s->cap)
         return;
-    int n = s->len + space + 10; // a little extra
+    size_t n = s->len + space + 10; // a little extra
     uchar *newbuf = realloc(s->buf, n+1);
     memset(newbuf + s->cap, 0, n + 1 - s->cap);
     s->buf = newbuf;
@@ -56,24 +54,24 @@ void str_append1(str s, char c) {
 }
 
 void str_append(str s, char *m) {
-    int n = strlen(m);
+    size_t n = strlen(m);
     str_ensure(s, n);
     memcpy(s->buf+s->len, m, n);
     s->len += n;
 }
 
-void str_appendN(str s, char *m, int n) {
+void str_appendN(str s, char *m, size_t n) {
     str_ensure(s, n);
     memcpy(s->buf+s->len, m, n);
     s->len += n;
 }
 
-str str_tail(str s, int i) {
-    int n = s->len - i;
-    if (n < 0) {
+str str_tail(str s, size_t i) {
+    if (s->len < i) {
         printf_locked("Error: invalid substring\n");
         return str_empty();
     }
+    size_t n = s->len - i;
     if (n == 0) {
         return str_empty();
     }
@@ -83,8 +81,8 @@ str str_tail(str s, int i) {
     return result;
 }
 
-str str_mid(str s, int i, int n) {
-    if (n < 0 || i < 0 || i + n > s->len) {
+str str_mid(str s, size_t i, size_t n) {
+    if (i + n > s->len) {
         printf_locked("Error: invalid substring\n");
         return str_empty();
     }
@@ -94,10 +92,8 @@ str str_mid(str s, int i, int n) {
     return result;
 }
 
-void str_discard_prefix(str s, int n) {
-    if (n < 0) {
-        printf_locked("Error: invalid prefix length\n");
-    } else if (n > s->len) {
+void str_discard_prefix(str s, size_t n) {
+    if (n > s->len) {
         printf_locked("Error: invalid prefix length\n");
         str_clear(s);
     } else if (n > 0) {
@@ -107,11 +103,7 @@ void str_discard_prefix(str s, int n) {
     }
 }
 
-str str_split(str s, int n) {
-    if (n < 0) {
-        printf_locked("Error: invalid prefix length\n");
-        return str_empty();
-    }
+str str_split(str s, size_t n) {
     if (n > s->len) {
         printf_locked("Error: invalid prefix length\n");
         n = s->len;
@@ -122,10 +114,8 @@ str str_split(str s, int n) {
     return result;
 }
 
-str str_splitline_after(str s, int n) {
-    if (n < 0)
-        n = 0;
-    else if (n > s->len)
+str str_splitline_after(str s, size_t n) {
+    if (n > s->len)
         return NULL;
     uchar *e = memchr(s->buf+n, '\n', s->len - n);
     if (!e)
@@ -136,14 +126,14 @@ str str_splitline_after(str s, int n) {
     return line;
 }
 
-void str_skip_spaces(str ascii, int *pos) {
+void str_skip_spaces(str ascii, size_t *pos) {
     while (*pos < ascii->len && ascii->buf[*pos] == ' ')
         (*pos)++;
 }
 
-str str_next_word(str ascii, int *pos) {
+str str_next_word(str ascii, size_t *pos) {
     str_skip_spaces(ascii, pos);
-    if (*pos == ascii->len)
+    if (*pos >= ascii->len)
         return NULL;
     uchar *start = ascii->buf + *pos;
     uchar *end = memchr(start, ' ', ascii->len - *pos);
@@ -152,7 +142,7 @@ str str_next_word(str ascii, int *pos) {
         result = str_tail(ascii, *pos);
         *pos = ascii->len;
     } else {
-        int n = (end - start);
+        size_t n = (end - start);
         result = str_mid(ascii, *pos, n);
         *pos += n;
     }
@@ -160,24 +150,24 @@ str str_next_word(str ascii, int *pos) {
 }
 
 
-int str_printf(str s, char *fmt, ...) {
+ssize_t str_printf(str s, char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
-    int n = vsnprintf((char*)s->buf + s->len, s->cap - s->len, fmt, ap);
+    ssize_t n = vsnprintf((char*)s->buf + s->len, s->cap - s->len, fmt, ap);
     va_end(ap);
     if (n < 0) {
         memset(s->buf + s->len, 0, s->cap - s->len);
         return n;
     }
-    if (s->len + n < s->cap) {
-        s->len += n;
-        return n;
+    if (s->len + (size_t)n < s->cap) {
+        s->len += (size_t)n;
+        return (size_t)n;
     }
-    str_ensure(s, n);
+    str_ensure(s, (size_t)n);
     va_start(ap, fmt);
     vsnprintf((char *)s->buf + s->len, s->cap - s->len, fmt, ap);
     va_end(ap);
-    s->len += n;
+    s->len += (size_t)n;
     return n;
 }
 
@@ -185,10 +175,10 @@ void str_dump_bytes(str s, char *title) {
     pthread_mutex_lock(&print_lock);
     int n;
     if (title)
-        n = printf("%s, %d bytes:", title, s->len);
+        n = printf("%s, %zu bytes:", title, s->len);
     else
-        n = printf("%d bytes:", s->len);
-    for (int i = 0; i < s->len; i++)
+        n = printf("%zu bytes:", s->len);
+    for (size_t i = 0; i < s->len; i++)
         printf(" %02x", s->buf[i]);
     if (s->len > 0) {
         printf("\n%*s:", n-1, ""); // indent

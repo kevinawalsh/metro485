@@ -27,7 +27,7 @@ struct sockaddr *get_addr(char *node, int port, socklen_t *addrlen) {
     return addr;
 }
 
-void open_udp_socket() {
+void open_udp_socket(void) {
     maddr = get_addr("127.0.0.1", maxport, &maddr_len);
     raddr = get_addr("127.0.0.1", rcvport, &raddr_len);
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);

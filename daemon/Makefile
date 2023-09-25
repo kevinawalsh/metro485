@@ -1,12 +1,13 @@
 
 .PHONY: all
-all: global-metro
+all: metro485
 
 
-global-metro: main.h main.c usage.c str.c debug.c osc.c udp.c usb.c
-	gcc -o global-metro -g -Wall -Werror main.c usage.c str.c debug.c osc.c udp.c usb.c
+metro485: main.h main.c usage.c str.c debug.c osc.c udp.c usb.c
+	clang -o metro485 -g -Wall -Werror main.c usage.c str.c debug.c osc.c udp.c usb.c
 
 
 .PHONY: clean
 clean:
-	rm -rf global-metro *.dSYM
+	rm -f metro485
+	rm -rf *.dSYM

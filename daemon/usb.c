@@ -32,14 +32,14 @@ str serial_readline(unsigned int *timeout_us) {
         return line;
     }
 
-    struct timespec start;
+    struct timespec start = { 0 };
     unsigned int time_remaining = 0;
     if (timeout_us && *timeout_us > 0) {
         clock_gettime(CLOCK_MONOTONIC, &start);
         time_remaining = *timeout_us;
     }
 
-    int pos = recvd->len;
+    size_t pos = recvd->len;
     for (;;) {
         if (timeout_us) {
             fd_set read_fds;
@@ -51,19 +51,22 @@ str serial_readline(unsigned int *timeout_us) {
             int avail = select(serialfd + 1, &read_fds, NULL, NULL, &timeout);
             if (avail != 1) { // timeout with no data available
                 subtract_elapsed_since(timeout_us, start);
+                if (verbose >= 2) {
+                    printf("Timeout waiting for data from %s\n", serial);
+                }
                 return NULL;
             }
         }
         str_ensure(recvd, 256);
-        int left = recvd->cap - recvd->len;
-        int n = read(serialfd, recvd->buf + recvd->len, left);
+        size_t left = recvd->cap - recvd->len;
+        ssize_t n = read(serialfd, recvd->buf + recvd->len, left);
         if (n < 0)
             exit_perror("read", "Could not read from serial port.\n");
-        if (n > left)
+        if ((size_t)n > left)
             exit_fail("Unexpected overflow reading from serial port (%d > %d).\n", n, left);
         if (n == 0)
             exit_fail("Serial port closed unexpectedly.\n");
-        recvd->len += n;
+        recvd->len += (size_t)n;
         line = str_splitline_after(recvd, pos);
         if (line) {
             if (verbose >= 2)
@@ -81,21 +84,21 @@ str serial_readline(unsigned int *timeout_us) {
 }
 
 void serial_write(str line) {
-    int sent = write(serialfd, line->buf, line->len);
+    size_t sent = write(serialfd, line->buf, line->len);
     if (sent != line->len)
         exit_perror("write", "Could not write to serial port.");
 }
 
-void try_ready() {
+void try_ready(void) {
     unsigned int timeout_us = 5000000;
     while (!ready) {
         str line = serial_readline(&timeout_us);
         if (!line) { // timeout
-            printf_locked("Arduino on %s not yet identified.\n");
+            printf_locked("Arduino on %s not yet identified.\n", serial);
             return;
         }
         str_show_ascii(line, serial);
-        int pos = 0;
+        size_t pos = 0;
         str title = str_next_word(line, &pos);
         str mode = str_next_word(line, &pos);
         str version = str_next_word(line, &pos);
@@ -120,7 +123,7 @@ void try_ready() {
     }
 }
 
-void serial_wait_for_ready() {
+void serial_wait_for_ready(void) {
     str query = str_from("identify\n");
     try_ready();
     for (int i = 0; i < 4 && !ready; i++) { // up to 4 more tries
@@ -146,21 +149,21 @@ int open_serial(char *name) {
         glob_t g;
         int rc = glob("/dev/cu.usbserial*", 0, NULL, &g);
         if (rc == GLOB_NOMATCH)
-            usage("no matching serial ports found", "/dev/tty.usbserial*");
+            usage("no matching serial ports found", "/dev/cu.usbserial*");
         if (rc)
-            usage("can't enumerate serial ports", "/dev/tty.usbserial*");
+            usage("can't enumerate serial ports", "/dev/cu.usbserial*");
         path = strdup(g.gl_pathv[0]);
         globfree(&g);
     } else if (file_exists(name)) { // try name
         path = name;
     } else if (!strchr(name, '/')) {  // try /dev/cu.name
-        int n = strlen("/dev/cu.") + strlen(name) + 1;
+        size_t n = strlen("/dev/cu.") + strlen(name) + 1;
         char *s = malloc(n);
         snprintf(s, n, "/dev/cu.%s", name);
         if (file_exists(s)) {
             path = s;
         } else {
-            fprintf(stderr, "No such serial port '%s' or '/dev/tty.%s\n", name, name);
+            fprintf(stderr, "No such serial port '%s' or '/dev/cu.%s\n", name, name);
             exit(EXIT_FAILURE);
         }
     } else {

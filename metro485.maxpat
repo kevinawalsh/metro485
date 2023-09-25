@@ -10,7 +10,7 @@
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 398.0, 96.0, 983.0, 792.0 ],
+		"rect" : [ 34.0, 87.0, 1372.0, 779.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 12.0,
@@ -105,7 +105,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 584.333312153816223, 861.333330273628235, 745.0, 49.0 ],
-					"text" : "elapsed 30 maxmsp ticks since previous"
+					"text" : "elapsed 6 maxmsp ticks since previous"
 				}
 
 			}
@@ -117,7 +117,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 1335.261882781982422, 825.821427404880524, 222.773816645145416, 22.0 ],
+					"patching_rect" : [ 1335.261882781982422, 825.821427404880524, 223.0, 22.0 ],
 					"text" : "elapsed $1 maxmsp ticks since previous"
 				}
 
@@ -214,7 +214,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 600.666674137115479, 698.5, 61.0, 22.0 ],
-					"text" : "6357"
+					"text" : "266"
 				}
 
 			}
@@ -262,7 +262,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 660.999997019767761, 414.0, 406.0, 127.0 ],
-					"presentation_linecount" : 9,
 					"text" : "Incoming messages.... These messages come from the arduinos.\n\n\"tick 3 7\" -- Tick messages are sent at regular pace. Each contains two numbers: a color and a sequence number. The meter chosen by the conductor defines the pattern of colors received and the length of the sequence.\n\n\"msg twinkle twinkle 42 teapots 3.14 cupcakes\" -- Arbitrary data sent by the conductor, consisting of a list of integers, strings, and floats."
 				}
 
@@ -288,7 +287,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 923.5, 323.5, 151.0, 37.0 ],
-					"presentation_linecount" : 2,
 					"text" : "Enable or disable arduino debug output."
 				}
 
@@ -363,7 +361,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 870.666674137115479, 227.666664719581604, 208.0, 52.0 ],
-					"presentation_linecount" : 2,
 					"text" : "These take effect when the given seqno comes around again."
 				}
 
@@ -376,7 +373,6 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 917.666674137115479, 281.666664719581604, 42.0, 22.0 ],
-					"presentation_linecount" : 2,
 					"text" : "start 1"
 				}
 
@@ -405,7 +401,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 644.166677117347717, 227.666664719581604, 182.0, 52.0 ],
-					"presentation_linecount" : 2,
 					"text" : "Main controls.\nThese take effect immediately."
 				}
 
@@ -501,7 +496,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 644.166677117347717, 10.666664719581604, 406.0, 221.0 ],
-					"presentation_linecount" : 16,
 					"text" : "Player controls.... These messages can be used by individual players to control their own arduino, without affecting other players. Valid messages:\n\nBasics:\n\"start\" -- resume processing tick messages\n\"stop\" -- ignore/mute tick messages\n\"dim\" -- turn off all the LEDs\n\"illuminate\" -- LEDs will follow the pattern defined by the meter\n\nAdvanced:\n\"stop N\" -- ignore/mute ticks when seqno N comes around again\n\"start N\" -- resume processing ticks when seqno N comes around again\n\"illuminate N\" -- illuminate LEDs when seqno N comes around again\n\"dim N\" -- dim LEDs when seqno N comes around again\n\"debug 1\" -- turn on debugging messages\n\"debug 0\" -- turn off debugging messages"
 				}
 
@@ -528,7 +522,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 238.666673392057419, 746.0, 246.000001490116119, 39.0 ],
-					"presentation_linecount" : 2,
 					"text" : "Send arbitrary data to players, immediately."
 				}
 
@@ -556,7 +549,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 375.499998509883881, 595.666664719581604, 192.000002980232239, 64.0 ],
-					"presentation_linecount" : 10,
 					"text" : "Define the temp and meter. \nThis takes effect when seqno reaches 1. (Note: if tempo is 0, only the meter is changed.)"
 				}
 
@@ -656,7 +648,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 369.5, 499.0, 153.0, 64.0 ],
-					"presentation_linecount" : 6,
 					"text" : "Set the delay between ticks, in milliseconds.\nThis takes effect when seqno reaches 1."
 				}
 
@@ -685,7 +676,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 257.666674137115479, 398.333330631256104, 208.0, 52.0 ],
-					"presentation_linecount" : 4,
 					"text" : "These take effect when the given seqno comes around again."
 				}
 
@@ -710,7 +700,6 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 257.666674137115479, 452.333330631256104, 41.0, 22.0 ],
-					"presentation_linecount" : 2,
 					"text" : "stop 1"
 				}
 
@@ -727,7 +716,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 22.166677117347717, 398.333330631256104, 215.0, 52.0 ],
-					"presentation_linecount" : 3,
 					"text" : "Main controls.\nThese take effect immediately."
 				}
 
@@ -870,7 +858,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 584.333312153816223, 777.333330273628235, 745.0, 80.0 ],
-					"text" : "tick color 1 count 1"
+					"text" : "tick color 3 count 3"
 				}
 
 			}
@@ -1004,7 +992,7 @@
 		"lines" : [ 			{
 				"patchline" : 				{
 					"destination" : [ "obj-98", 0 ],
-					"midpoints" : [ 810.166674137115479, 355.0, 809.0, 364.0, 670.499997019767761, 364.0 ],
+					"midpoints" : [ 810.166674137115479, 355.0, 810.166674137115479, 364.0, 670.499997019767761, 364.0 ],
 					"source" : [ "obj-101", 0 ]
 				}
 

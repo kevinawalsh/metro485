@@ -12,7 +12,7 @@ void printf_locked(char *msg, ...) {
     pthread_mutex_unlock(&print_lock);
 }
 
-void close_handles() {
+void close_handles(void) {
     exiting = 1;
     if (sockfd >= 0) {
         close(sockfd);
