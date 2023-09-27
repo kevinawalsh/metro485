@@ -1,6 +1,34 @@
 Global Metro
 ============
 
+# Quick Start Installation for MacOS via the Command Line
+
+1. Open Terminal.app -- Pick a folder where you want to install the software.
+   Either right-click (or control-click), select "Services -> New Terminal at
+   Folder". Or, open Terminal.app and change to the desired location by typing,
+   for example, "cd ~/Documents/Coding\ Music/"
+
+2. Clone the github repository -- Type "git clone
+   https://github.com/kevinawalsh/metro485.git"
+
+3. If desired, make an alias ("shortcut") by
+   Command-Option-Dragging the `start-metro495-arduino.command` file to your
+   desktop.
+
+# Quick Start Installation for MacOS without Command Line
+
+1. Download the latest version of the [main.zip](https://github.com/kevinawalsh/metro485/archive/refs/heads/main.zip) file (or go to 
+[https://github.com/kevinawalsh/metro485/](https://github.com/kevinawalsh/metro485/),
+click the green "Code" button, then "Download Zip".
+
+2. Unzip the file into any location you like.
+
+3. If desired, make an alias ("shortcut") by
+   Command-Option-Dragging the `start-metro495-arduino.command` file to your
+   desktop.
+
+# Overview
+
 A cobbled-together midi clock synchronizer for a cluster of laptops runnning Max/MSP. The goal is to
 allow a cluster of laptops all running Max/MSP -- a "laptop orchestra" -- to use a common global
 clock source. This serves as a synchronized metronome and lets events be triggered in unison across
