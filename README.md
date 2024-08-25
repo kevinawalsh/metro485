@@ -174,8 +174,13 @@ Other notes on player board:
 Simplified circuit for trial:
 * Each RS485 board (26-28 of them, half in tx mode, half in rx mode), could draw
   200 mA or more, since there are *two* 120ohm terminating resistors on each
-  segment. This is more than the +5v pin on the nano can supply. So we really
-  should use a separate supply to drive these.
+  segment. Total current draw with only the 13-14 conductor-side (tx mode)
+  transceivers is approx 750mA at idle. This is more than the +5v pin on the
+  nano can supply. We use a dedicated +5v power supply for the board, rather
+  than drawing through the nano's USB C port.
+* To reduce power consumption and heating, the DE pins of all conductor-side
+  transceivers are tied to nano pin D4. When pulled low, transceiver data output
+  is disabled.
 * Do we need isolators? Maybe not? Let's try without them, with a single ground.
 
 Block diagram:
@@ -183,9 +188,11 @@ Block diagram:
     Unearthed    Arduino         Unearthed
      Laptop      Nano            Regulated       Many RS 485  
       USB ======= USB            Supply          Transceivers  Uplink RS485
-                  D2 ->-------------------------> DI           Transeiver    OLED
-                  D3 <---------------------------------------<- RO           Display
-                  GND -------------- GND -------- GND --------- GND --------- GND
+                  D2 ->-------------------------> DI           Transeiver
+                  D3 <---------------------------------------<- RO
+                  D4 ->-------------------------> DE       ,--- RE            OLED           
+                                                          /-----DE            Display    
+                  GND -------------- GND -------- GND - -'----- GND --------- GND
                   +5v ------------<- +5v ->------ VCC --------- VCC --------- VCC
                   D4 ->--LED--/\/\/---|                                ,----- SDA
                   D5 ->--LED--/\/\/---|                               / ,---- SCL

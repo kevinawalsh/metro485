@@ -16,13 +16,17 @@
 #define IDENTIFICATION   "+metro conductor v1.1 ready\n"
 
 // Pins
-#define RS485_TX_DATA  (2)
-#define RS485_RX_DATA  (3)
-#define LED_Y          (5)
-#define LED_B          (6)
-#define LED_R          (7)
-#define LED_G          (8)
-#define LED_N          LED_BUILTIN // D13
+#define RS485_TX_DATA    (2)
+#define RS485_RX_DATA    (3)
+#define RS485_TX_ENABLE  (4)
+#define LED_Y            (5)
+#define LED_B            (6)
+#define LED_R            (7)
+#define LED_G            (8)
+#define LED_N            LED_BUILTIN // D13
+
+#define RS485_BAUD       14400  // 4800 seemed to work fine
+#define RS485_DELAY_US   70     // bit delay = (1000000 microseconds / BAUD)
 
 // Variables
 SSD1306AsciiWire oled;
@@ -160,6 +164,19 @@ void setLights(int cccc) {
   digitalWrite(LED_Y, (map & 8) ? LOW : HIGH);
 }
 
+
+void rs485txEnable() {
+  digitalWrite(RS485_TX_ENABLE, HIGH);
+  // wait approx one bit-delay for tx lines to stabilize
+  delayMicroseconds(RS485_DELAY_US);
+}
+
+void rs485txSleep() {
+  // hold approx one bit-delay before lines go high-impedance
+  delayMicroseconds(RS485_DELAY_US);
+  digitalWrite(RS485_TX_ENABLE, LOW);
+}
+
 // Ticks are encoded in 16 bits:
 //      1011 01ss ssss cccc  (when illuminated)
 //  or: 0110 10ss ssss cccc  (when not illuminated)
@@ -182,8 +199,10 @@ void tick() {
   byte tag = illuminated ? 0xB4 : 0x68; // 6 bits, upper end
   byte b0 = tag | (ssssss)>>4;  // tag, plus top 2 bits of ssssss
   byte b1 = (ssssss<<4) | cccc;  // rest of ssssss, plus cccc
+  rs485txEnable();
   rs485.write(b0);
   rs485.write(b1);
+  rs485txSleep();
 
   // send message to remote control laptop over special rs485 connection
   sprintf(tick_msg, "+tick %d %d\n", (int)color, (int)seqno);
@@ -245,9 +264,9 @@ void process_command(const char *buf) {
     next_meter[1] = 2;
     next_meter[2] = 3;
     next_meter[3] = 4;
-      if (debug_metro) {
-        Serial.write("* will set ms to 500 ms per tick with meter len 4\n");
-      }
+    if (debug_metro) {
+      Serial.write("* will set ms to 500 ms per tick with meter len 4\n");
+    }
   } else if (match(&buf, "set", &n)) {
     // takes effect when seqno is 1
     if (n > 9999) {
@@ -297,7 +316,9 @@ void process_command(const char *buf) {
       return;
     if (n <= 0) {
       illuminated = true;
+      rs485txEnable();
       rs485.write(0xD7);
+      rs485txSleep();
       setLights(prevSeqno > 0 ? meter[prevSeqno-1] : 0);
     } else {
       illuminate_at = n;
@@ -315,7 +336,9 @@ void process_command(const char *buf) {
       return;
     if (n <= 0) {
       illuminated = false;
+      rs485txEnable();
       rs485.write(0xD6);
+      rs485txSleep();
       setLights(0);
     } else {
       dim_at = n;
@@ -329,11 +352,13 @@ void process_command(const char *buf) {
     char *payload = buf;
     int nn = strlen(payload);
     // unsigned int chk = compute_checksum(payload);
+    rs485txEnable();
     rs485.write(0xAA);
     rs485.write((byte)nn);
     // rs485.write((chk >> 8) & 0xff);
     // rs485.write((chk >> 0) & 0xff);
     rs485.write(payload);
+    rs485txSleep();
     Serial.write("+msg ");
     Serial.write(payload);
     Serial.write('\n');
@@ -341,6 +366,17 @@ void process_command(const char *buf) {
     // takes effect immediately
     debug_metro = (n != 0);
     oled_update();
+  } else if (match(&buf, "txpower", &n)) {
+    // takes effect immediately
+    if (n == 0) {
+      rs485txSleep();
+      if (debug_metro)
+        Serial.write("* rs485 tx power off\n");
+    } else {
+      rs485txEnable();
+      if (debug_metro)
+        Serial.write("* rs485 tx power on\n");
+    }
   } else if (match(buf, "identify")) {
     Serial.write("\n\n\n\n");
     Serial.write(IDENTIFICATION);
@@ -371,8 +407,11 @@ void setup() {
   Serial.begin(57600);
   while (!Serial) { } // wait for native USB serial
 
-  rs485.begin(14400); // 4800 seemed to work fine
+  pinMode(RS485_TX_ENABLE, OUTPUT);
+  rs485txEnable();
+  rs485.begin(RS485_BAUD);
   while (!rs485) { } // wait for RS 485
+  rs485txSleep();
 
   pinMode(LED_N, OUTPUT);
   pinMode(LED_G, OUTPUT);
@@ -426,14 +465,18 @@ void update_settings() {
   if (seqno == illuminate_at) {
     illuminated = true;
     illuminate_at = 0;
+    rs485txEnable();
     rs485.write(0xD7);
+    rs485txSleep();
     if (!ticking)
       setLights(prevSeqno > 0 ? meter[prevSeqno-1] : 0);
   }
   if (seqno == dim_at) {
     illuminated = false;
     dim_at = 0;
+    rs485txEnable();
     rs485.write(0xD6);
+    rs485txSleep();
     setLights(0);
   }
   if (updated)
